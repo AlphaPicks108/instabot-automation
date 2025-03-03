@@ -22,10 +22,21 @@ def fetch_cj_products():
 
     response = requests.post(url, json=payload, headers=headers)
     if response.status_code == 200:
-        return response.json()["result"]["list"]
-    else:
-        print("Error fetching CJ products:", response.text)
+        def fetch_cj_products():
+    response = requests.get(YOUR_CJ_API_ENDPOINT, headers={"Authorization": YOUR_CJ_API_KEY})
+    
+    # Debugging print
+    print("Response JSON:", response.json())
+
+    if isinstance(response.json(), bool):  # If response is boolean, return empty list
         return []
+
+    if "result" not in response.json() or "list" not in response.json()["result"]:
+        print("Unexpected API response format")
+        return []
+
+    return response.json()["result"]["list"]
+
 
 # Function to get market price (Dummy function, replace with web scraping later)
 def get_market_price(product_name):
