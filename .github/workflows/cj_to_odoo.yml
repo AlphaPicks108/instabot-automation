@@ -1,0 +1,30 @@
+name: CJ to Odoo Automation
+
+on:
+  workflow_dispatch:  # Allows manual execution
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests odoorpc
+
+      - name: Run CJ to Odoo Bot
+        env:
+          ODOO_URL: ${{ secrets.ODOO_URL }}
+          ODOO_DB: ${{ secrets.ODOO_DB }}
+          ODOO_EMAIL: ${{ secrets.ODOO_EMAIL }}
+          ODOO_PASSWORD: ${{ secrets.ODOO_PASSWORD }}
+          CJ_API_KEY: ${{ secrets.CJ_API_KEY }}
+        run: python cj_to_odoo_bot.py
