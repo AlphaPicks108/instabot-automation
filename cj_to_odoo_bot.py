@@ -46,9 +46,11 @@ def authenticate_odoo():
 
     try:
         response = session.post(login_url, json=payload, headers=headers, timeout=15)
+        response_json = response.json()
+        print(f"🔹 Odoo Auth Response: {response_json}")
+
         if response.status_code == 200:
-            result = response.json()
-            return result.get("result", {}).get("session_id")
+            return response_json.get("result", {}).get("session_id")
         else:
             print(f"❌ Odoo Authentication Failed: {response.text}")
             return None
@@ -71,18 +73,18 @@ def fetch_cj_products():
 
     try:
         response = session.post(CJ_API_ENDPOINT, json=payload, headers=headers, timeout=15)
-
-        print("Response Status:", response.status_code)
+        print(f"🔹 CJ API Response Status: {response.status_code}")
 
         if response.status_code == 401:
             print("❌ Authentication failed! Invalid CJ_API_KEY.")
             return []
 
         if response.status_code != 200:
-            print("❌ Failed to fetch CJ products:", response.text)
+            print(f"❌ Failed to fetch CJ products: {response.text}")
             return []
 
         data = response.json()
+        print(f"🔹 CJ API Response: {json.dumps(data, indent=2)}")
 
         if not isinstance(data, dict) or "result" not in data or "list" not in data["result"]:
             print("❌ Unexpected API response format:", json.dumps(data, indent=2))
@@ -141,9 +143,12 @@ def upload_to_odoo(product, session_id):
                     "name": product.get("name", "Unnamed Product"),
                     "list_price": market_price,
                     "standard_price": cj_price,
-                    "description_sale": (product.get("description", "") + "\n\nThis product is not returnable."),
+                    "description_sale": product.get("description", "") + "\n\nThis product is not returnable.",
                     "image_1920": base64_image,
-                    "type": "product"
+                    "type": "product",
+                    "categ_id": 1,  # Default category (change if needed)
+                    "uom_id": 1,  # Unit of Measure (1 = Units)
+                    "uom_po_id": 1  # Purchase UoM
                 }],
                 "kwargs": {},
                 "session_id": session_id  # Use valid session ID
@@ -151,6 +156,8 @@ def upload_to_odoo(product, session_id):
         }
 
         response = session.post(odoo_api, json=payload, headers=headers, timeout=15)
+
+        print(f"🔹 Odoo Upload Response: {response.text}")
 
         if response.status_code == 200:
             print(f"✅ Product uploaded: {product.get('name', 'Unnamed')}")
